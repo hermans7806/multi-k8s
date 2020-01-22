@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t chrono5/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true chrono5/react-test npm test
+
+after_success:
+    - docker build -t chrono5/multi-client ./client
+    - docker build -t chrono5/multi-nginx ./nginx
+    - docker build -t chrono5/multi-server ./server
+    - docker build -t chrono5/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push chrono5/multi-client
+    - docker push chrono5/multi-nginx
+    - docker push chrono5/multi-server
+    - docker push chrono5/multi-worker
